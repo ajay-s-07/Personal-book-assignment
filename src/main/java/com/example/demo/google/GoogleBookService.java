@@ -23,5 +23,25 @@ public class GoogleBookService {
                 .retrieve()
                 .body(GoogleBook.class);
     }
+
+//  To fetch single book volume by its Google Books ID.
+    public GoogleBook.Item getBookById(String volumeId) {
+        try {
+            return restClient.get()
+                    .uri("/volumes/{volumeId}", volumeId)
+                    .retrieve()
+                    .body(GoogleBook.Item.class);
+        }
+        // invalid id
+        catch (org.springframework.web.client.HttpClientErrorException.NotFound ex) {
+            return null;
+        }
+        // other google api errors
+        catch (org.springframework.web.client.HttpClientErrorException.TooManyRequests ex) {
+            throw new org.springframework.web.server.ResponseStatusException(429, "Google API quota exceeded", ex);
+        } catch (org.springframework.web.client.RestClientResponseException ex) {
+            throw new org.springframework.web.server.ResponseStatusException(ex.getStatusCode(), "Google API error", ex);
+        }
+    }
 }
 
