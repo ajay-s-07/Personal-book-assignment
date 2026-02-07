@@ -3,7 +3,7 @@
 ## How to Run (Local)
 **Prerequisites**
 - Java 8+ (recommended: Java 17+)
-- Maven 3.x
+- Maven 
 
 **Steps**
 1. Clone the repository and open a terminal in the project root (folder containing `pom.xml`).
@@ -17,7 +17,7 @@
 
 ## What I Newly Added (Assignment Requirement)
 
-### ✅ New Endpoint: Add a book to personal list by Google Volume ID
+### New Endpoint: Add a book to personal list by Google Volume ID
 - **POST** `/books/{googleId}`
 
 **Behavior**
