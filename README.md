@@ -1,50 +1,66 @@
 # Personal Book List with Google Books Integration
 
-## Context
-You have a Spring Boot project with a REST endpoint `/books` that returns
-all books from an in-memory H2 database. The code includes a `Book` entity,
-`BookRepository`, `BookController`, and a Google Books integration (`/books/google`)
-exposing a search that returns the upstream Google schema via `GoogleBookService`.
+## How to Run (Local)
+**Prerequisites**
+- Java 8+ (recommended: Java 17+)
+- Maven 3.x
 
-## Using the Google Books API
-* Base URL: `https://www.googleapis.com/books/v1`
-* Search endpoint: `GET /volumes?q={query}` (e.g., `q=effective+java`, optional `maxResults`, `startIndex`).
-* Volume details endpoint: `GET /volumes/{id}` to fetch a single book by Google volume ID.
-* This project uses `GoogleBookService` with a configurable base URL. Set
-  `google.books.base*url` in `application.properties` (or override in tests)
-  to point to the real API or a mock server. The search route is exposed as
-  `GET /google?q={query}` returning the upstream Google schema.
+**Steps**
+1. Clone the repository and open a terminal in the project root (folder containing `pom.xml`).
+2. Start the application:
+   - Using Maven:
+     - `mvn spring-boot:run`
+3. Application will start on:
+   - `http://localhost:8080`
 
-## Task
-Implement the following, with accompanying tests for each change (tests are
-mandatory):
+---
 
-1. Add a new REST endpoint that takes a Google Books volume ID as a parameter
-   and adds the book to your personal list.
+## What I Newly Added (Assignment Requirement)
 
-   * Endpoint: `POST /books/{googleId}` (path variable `googleId`).
-   * Behavior:
-       * Fetch the book details from the Google Books API (via `GoogleBookService`).
-       * Map appropriate fields from `GoogleBook` to your `Book` entity
-       (e.g., id, title, first author, pageCount).
-       * Persist the mapped `Book` using `BookRepository`.
-       * Return `201 Created` with the persisted `Book` in the response body.
-   * Tests (Spring Boot tests):
-       * Happy path: valid `googleId` returns 201 and persists the book with
-       correct fields.
-       * Error path: invalid or missing upstream data returns an appropriate
-       error (e.g., `400 Bad Request`), and nothing is persisted.
-       * Prefer mocking the downstream (e.g., MockWebServer/WireMock) to avoid
-       flakiness; a smoke test hitting the real API is optional.
+### ✅ New Endpoint: Add a book to personal list by Google Volume ID
+- **POST** `/books/{googleId}`
 
-2. Keep existing functionality intact and verify:
+**Behavior**
+- Fetches a single Google Books volume via `GoogleBookService.getBookById(googleId)` which calls Google Books:
+  - `GET /volumes/{id}`
+- Maps fields from Google response to `Book`:
+  - `id` (Google volume ID)
+  - `title`
+  - first author
+  - `pageCount`
+- Persists the mapped `Book` using `BookRepository`
+- Returns **201 Created** with the saved `Book`
 
-   * The existing `GET /books` endpoint still returns all persisted books.
-   * The Google search endpoint `/google` continues to return the
-     Google schema payload as-is.
-   * Tests should seed data where needed and assert on JSON responses and
-     status codes.
+---
 
-You may refactor or add code as needed, but keep the existing structure.
-Aim to complete within 30 minutes.
+## Endpoints
+
+### Get all saved books (H2 in-memory)
+- **GET** `/books`
+
+### Search Google Books (upstream schema passthrough)
+- **GET** `/google?q={query}&maxResults={n}&startIndex={n}`
+
+### Add book by Google ID (NEW)
+- **POST** `/books/{googleId}`
+
+---
+
+## How to Test
+Run all tests:
+- `mvn test`
+
+**Test Notes**
+- Google Books API calls are mocked using **MockWebServer** to avoid quota/flakiness.
+- Mock payload file: `src/test/resources/single_volume.json`
+- Tests cover:
+  - `GET /books` returns persisted books
+  - `POST /books/{googleId}` happy path → 201 + persisted
+  - `POST /books/{googleId}` invalid ID → 400 + nothing persisted
+
+---
+
+## Notes
+- H2 is in-memory, so data resets on application restart.
+- `/google` endpoint returns upstream Google schema as-is; real Google API may rate-limit, so tests mock it.
 
